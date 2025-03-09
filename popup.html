@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>物流資訊</title>
+  <meta charset="UTF-8">
+  <style>
+    body { width: 400px; }
+    ul { list-style: none; padding: 0; }
+    li { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    .button-info { font-weight: bold; margin-bottom: 3px; }
+    .logistics-data { white-space: pre-line; }
+    /* 新增的 CSS */
+    pre {
+      white-space: nowrap; /* 防止换行 */
+      overflow: hidden;  /* 隐藏溢出部分 */
+      text-overflow: ellipsis; /* 显示省略号 */
+      max-width: 20ch; /* 假定每个中文字符宽度为2，10个中文字符就是20 */     
+    }
+  </style>
+</head>
+<body>
+  <h1>物流資訊</h1>
+  <ul id="data-list"></ul>
+  <script src="popup.js"></script>
+</body>
+</html>
