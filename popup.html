@@ -6,19 +6,36 @@
   <style>
     body { width: 400px; }
     ul { list-style: none; padding: 0; }
-    li { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    li {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+      display: flex; /* 使用 Flexbox 布局 */
+      justify-content: space-between; /* 项目之间均匀分布 */
+    }
     .product-name {
-      display: inline-block; /* 或者您喜欢的其他样式 */
-      margin-right: 10px; /* 与状态之间加点间距 */
+      margin-right: 10px;
+      flex: 2; /* 商品名称占 2 份空间 */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 40%; /* 限制最大宽度 */
     }
     .status {
-      display: inline-block;
-      font-weight: bold; /* 加粗显示 */
-      /* 可以根据 valid/invalid 设置不同的颜色 */
-      color: green; /* 默认绿色 */
+      font-weight: bold;
+      color: green;
+      margin-right: 10px;
+      flex: 1; /* 状态占 1 份空间 */
+       white-space: nowrap;
     }
     .status.invalid {
-      color: red; /* invalid 时显示红色 */
+      color: red;
+    }
+    .logistics-info {
+      flex: 3; /* 物流信息占 3 份空间 */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   </style>
 </head>

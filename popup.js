@@ -1,90 +1,135 @@
 // popup.js
-
 document.addEventListener('DOMContentLoaded', () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      chrome.scripting.executeScript({
-        target: { tabId: tabs[0].id },
-        func: extractData,
-      }).then((result) => {
-        const data = result[0]?.result;
-        const dataList = document.getElementById('data-list');
-  
-        console.log("Extracted Data:", data); // 调试：查看提取到的数据
-  
-        if (data && data.length > 0) {
-          const uniqueProductNames = new Set();
-          data.forEach(({ productName, isValid }) => {
-            if (!uniqueProductNames.has(productName)) {
-              uniqueProductNames.add(productName);
-              const li = document.createElement('li');
-  
-              const productNameSpan = document.createElement('span');
-              productNameSpan.classList.add('product-name');
-              productNameSpan.textContent = productName;
-              li.appendChild(productNameSpan);
-  
-              const statusSpan = document.createElement('span');
-              statusSpan.classList.add('status');
-              statusSpan.textContent = isValid ? 'valid' : 'invalid';
-              if (!isValid) {
-                statusSpan.classList.add('invalid'); // 添加 invalid 类
-              }
-              li.appendChild(statusSpan);
-  
-              dataList.appendChild(li);
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.scripting.executeScript({
+            target: { tabId: tabs[0].id },
+            func: extractData,
+        }).then((result) => {
+            const data = result[0]?.result;
+            const dataList = document.getElementById('data-list');
+
+            console.log("Extracted Data:", data); // 调试
+
+            if (data && data.length > 0) {
+                const uniqueProductNames = new Set();
+                data.forEach(({ productName, isValid, logisticsText }) => {
+                    if(!uniqueProductNames.has(productName)){
+                        uniqueProductNames.add(productName);
+                        const li = document.createElement('li');
+
+                        const productNameSpan = document.createElement('span');
+                        productNameSpan.classList.add('product-name');
+                        productNameSpan.textContent = productName;
+                        li.appendChild(productNameSpan);
+
+                        const statusSpan = document.createElement('span');
+                        statusSpan.classList.add('status');
+                        statusSpan.textContent = isValid ? 'valid' : 'invalid';
+                        if (!isValid) {
+                            statusSpan.classList.add('invalid');
+                        }
+                        li.appendChild(statusSpan);
+
+                        const logisticsSpan = document.createElement('span');
+                        logisticsSpan.classList.add('logistics-info');
+                        logisticsSpan.textContent = logisticsText || '';
+                        li.appendChild(logisticsSpan);
+
+                        dataList.appendChild(li);
+                    }
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = '沒有找到指定的元素';
+                dataList.appendChild(li);
             }
-          });
-        } else {
-          const li = document.createElement('li');
-          li.textContent = '沒有找到指定的元素';
-          dataList.appendChild(li);
-        }
-      });
+        });
     });
-  });
-  
-  function extractData() {
+});
+
+async function extractData() {
     const containers = document.querySelectorAll('.index-mod__order-container___1ur4-.js-order-container');
     const data = [];
-  
+
     console.log("Containers found:", containers);
-  
+
+    // 1. 触发所有 "查看物流" 链接的 mouseover 事件
+    const logisticsLinks = []; // 存储所有物流链接，稍后用于关闭
+    containers.forEach(container => {
+        try {
+            const tbody = container.querySelector('.bought-wrapper-mod__head___2vnqo + tbody');
+            if (tbody) {
+                const logisticsLink = tbody.querySelector('a[href*="pc-trade-logistics"]');
+                if (logisticsLink) {
+                    const viewtext = ["查看物流", "查看物料"];
+                    if(logisticsLink && viewtext.includes(logisticsLink.textContent.trim())){
+                         logisticsLinks.push(logisticsLink); // 将链接添加到数组中
+                        const event = new MouseEvent('mouseover', {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window
+                        });
+                        logisticsLink.dispatchEvent(event);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error triggering mouseover:", error);
+        }
+    });
+
+    // 2. 等待一段时间，确保所有悬浮框都已显示 (可以根据实际情况调整延时)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 3. 一次性抓取所有悬浮框的内容
+    const tooltips = document.querySelectorAll('.logistics-info-mod__header___1z4Ea');
+    console.log("Tooltips found:", tooltips);
+    const logisticsTexts = Array.from(tooltips).map(tooltip => tooltip.textContent.trim());
+
+
+    // 4. 再次遍历容器，提取商品名称、isValid，并与物流信息匹配
+    let logisticsIndex = 0; // 物流信息索引
     containers.forEach(container => {
       let productName = '找不到商品名称';
       let isValid = false;
-  
-      try {
-        // 找到包含商品名称和“查看物流”的 tbody
-        const tbody = container.querySelector('.bought-wrapper-mod__head___2vnqo + tbody'); // 使用相邻兄弟选择器
-        console.log("tbody Element:", tbody);
-  
+      let logisticsText = '';
+
+      try{
+        const tbody = container.querySelector('.bought-wrapper-mod__head___2vnqo + tbody');
         if (tbody) {
-          // 1. 提取商品名称 (在 tbody 内)
-          const productNameElement = tbody.querySelector('.sol-mod__no-br___2tKy9');
-          console.log("Product Name Element:", productNameElement);
-  
-          if (productNameElement) {
-            productName = productNameElement.textContent.trim();
-            console.log("Product Name:", productName);
-  
-            // 2. 检查是否存在 "查看物流" (在 tbody 内)
-            const logisticsLink = tbody.querySelector('a[href*="pc-trade-logistics"]'); // 更精确的选择器
-            console.log("Logistics Link:", logisticsLink);
-              const viewtext = ["查看物流", "查看物料"];
-              if(logisticsLink && viewtext.includes(logisticsLink.textContent.trim())){
-                  isValid = true;
-              }
-            console.log("Is Valid:", isValid);
-          }
-        } else {
-          console.warn("tbody not found in container:", container);
+            const productNameElement = tbody.querySelector('.sol-mod__no-br___2tKy9');
+            if (productNameElement) {
+                productName = productNameElement.textContent.trim();
+
+                const logisticsLink = tbody.querySelector('a[href*="pc-trade-logistics"]');
+                const viewtext = ["查看物流", "查看物料"];
+                if(logisticsLink && viewtext.includes(logisticsLink.textContent.trim())){
+                    isValid = true;
+                }
+
+                if (isValid) {
+                  // 从 logisticsTexts 数组中获取对应的物流信息
+                  logisticsText = logisticsTexts[logisticsIndex] || '';
+                  logisticsIndex++;
+                }
+            }
         }
-      } catch (error) {
-        console.error("Error extracting data:", error);
+      } catch(error){
+          console.error("Error extracting data:", error);
       }
-  
-      data.push({ productName, isValid });
+
+      data.push({ productName, isValid, logisticsText });
     });
-  
+
+    // 5. (可选) 关闭所有悬浮框
+    logisticsLinks.forEach(link => {
+        const event = new MouseEvent('mouseout', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+        link.dispatchEvent(event);
+    });
+
     return data;
-  }
+}
