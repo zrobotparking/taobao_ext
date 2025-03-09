@@ -71,6 +71,14 @@ If you'd like to contribute to this project, you can:
 
 Please follow good coding practices, include comments, and test your changes thoroughly.
 
+## Important Interface
+訂單div: index-mod__order-container___1ur4- js-order-container
+訂單第一商品div: sol-mod__no-br___2tKy9
+物流div: logistics-info-mod__header___1z4Ea
+
+
+
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.  (You should create a `LICENSE` file in your project and paste the MIT license text into it if you choose this license.  You can use other licenses as well).
