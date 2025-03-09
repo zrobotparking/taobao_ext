@@ -7,14 +7,18 @@
     body { width: 400px; }
     ul { list-style: none; padding: 0; }
     li { margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-    .button-info { font-weight: bold; margin-bottom: 3px; }
-    .logistics-data { white-space: pre-line; }
-    /* 新增的 CSS */
-    pre {
-      white-space: nowrap; /* 防止换行 */
-      overflow: hidden;  /* 隐藏溢出部分 */
-      text-overflow: ellipsis; /* 显示省略号 */
-      max-width: 20ch; /* 假定每个中文字符宽度为2，10个中文字符就是20 */     
+    .product-name {
+      display: inline-block; /* 或者您喜欢的其他样式 */
+      margin-right: 10px; /* 与状态之间加点间距 */
+    }
+    .status {
+      display: inline-block;
+      font-weight: bold; /* 加粗显示 */
+      /* 可以根据 valid/invalid 设置不同的颜色 */
+      color: green; /* 默认绿色 */
+    }
+    .status.invalid {
+      color: red; /* invalid 时显示红色 */
     }
   </style>
 </head>
